@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e9e2d5">
+  <meta name="description" content="Slatehouse помогает небольшой съёмочной команде превратить разбор сценария в выполнимое расписание и call sheet.">
+  <meta name="geo.region" content="RU-BA">
+  <meta name="geo.placename" content="Уфа, Республика Башкортостан">
+  <link rel="canonical" href="https://thelastie.github.io/slatehouse/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Slatehouse — рабочее место съёмочной группы">
+  <meta property="og:description" content="Разложите сцены по съёмочному дню, проверьте свет и переезды, распечатайте call sheet.">
+  <meta property="og:url" content="https://thelastie.github.io/slatehouse/">
+  <meta property="og:image" content="https://thelastie.github.io/slatehouse/screenshots/slatehouse.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Slatehouse — съёмочный план</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='5' y='5' width='38' height='38' rx='7' fill='%232c3430'/%3E%3Cpath d='M11 15h26v5H11zm0 9h18v4H11zm0 8h26v3H11z' fill='%23f0bf45'/%3E%3C/svg%3E">
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Slatehouse","applicationCategory":"BusinessApplication","operatingSystem":"Any","inLanguage":"ru","description":"An offline-first production desk for breaking down scenes, planning a shoot day, checking daylight and company moves, and preparing a printable call sheet.","areaServed":"Worldwide","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+  </script>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <script src="app.js?v=3" defer></script>
+</head>
+<body>
+  <div class="paper-grain" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Slatehouse, к началу"><span class="brand-mark">S</span><span>slatehouse</span></a>
+    <div class="project-title"><span>ПРОЕКТ / 014</span><strong>Последний паром</strong></div>
+    <div class="top-actions"><span class="save-state" id="saveState"><i></i>СОХРАНЕНО ЛОКАЛЬНО</span><button class="icon-button" id="backupButton" type="button" title="Скачать резервную копию">↗</button><input id="restoreInput" type="file" accept="application/json" hidden></div>
+  </header>
+  <div class="layout" id="top">
+    <aside class="rail" aria-label="Разделы проекта">
+      <div class="day-stamp"><span>ДЕНЬ</span><b>02</b><i>ИЗ 06</i></div>
+      <nav class="rail-nav"><a class="is-active" href="#schedule"><span>01</span> Расписание</a><a href="#scenes"><span>02</span> Сцены <b id="navSceneCount">09</b></a><a href="#call-sheet"><span>03</span> Call sheet</a></nav>
+      <div class="rail-bottom"><span class="sun-mark" aria-hidden="true">◒</span><span>СВЕТ<br><b>07:18—18:42</b></span></div>
+    </aside>
+    <main class="main-content">
+      <section class="intro">
+        <div class="intro-copy"><p class="eyebrow"><i></i>ПРОИЗВОДСТВЕННЫЙ ЛИСТ · СЪЁМОЧНЫЙ ДЕНЬ 02</p><h1>Сначала день.<br><em>Потом — кадр.</em></h1><p class="lead">Соберите сцены в смену, которую можно снять: одним переездом меньше, нужный свет — вовремя, люди знают, когда приезжать.</p></div>
+        <div class="clapper" aria-label="Хлопушка, съёмочный день 2"><div class="clapper-top"><span></span><span></span><span></span><span></span><span></span></div><div class="clapper-body"><b>THE LAST FERRY</b><small>DAY 02 · TAKE THE WEATHER</small><div><span>РЕЖИССЁР</span><strong>И. Воронцова</strong><span>ПЛОЩАДКА</span><strong>СЕВЕРНЫЙ БЕРЕГ</strong></div></div></div>
+      </section>
+      <section class="stats" aria-label="Сводка съёмочного дня"><div><small>СЦЕНЫ</small><strong id="statScenes">09</strong><span>в плане</span></div><div><small>СТРАНИЦЫ</small><strong id="statPages">12⅜</strong><span>сценария</span></div><div><small>АКТЁРЫ</small><strong id="statCast">06</strong><span>на площадке</span></div><div><small>ПЕРЕЕЗДЫ</small><strong id="statMoves">02</strong><span>между локациями</span></div><div class="stat-weather"><small>ПОГОДА / УФА</small><strong>+8° <i>↗</i></strong><span>облачно · ветер 4 м/с</span></div></section>
+      <section class="work-area" id="schedule">
+        <div class="schedule-column">
+          <div class="section-heading"><div><p class="eyebrow">ПЛАН СМЕНЫ <span>02 / СРЕДА</span></p><h2>Порядок съёмок</h2></div><button class="button button-amber" id="autoPlan" type="button"><span aria-hidden="true">✳</span> Собрать день</button></div>
+          <div class="plan-tools"><div class="filter-tabs" role="group" aria-label="Фильтр сцен"><button class="filter is-active" data-filter="all" type="button">Все <b id="filterAllCount">09</b></button><button class="filter" data-filter="day" type="button">Дневные</button><button class="filter" data-filter="night" type="button">Ночные</button></div><button class="text-button" id="addScene" type="button">＋ Добавить сцену</button></div>
+          <div class="scene-list" id="sceneList" aria-live="polite"></div>
+          <div class="end-of-day"><span>СТОП СМЕНЫ</span><b id="wrapTime">18:10</b><i></i><span>ЗОЛОТОЙ ЧАС ДО 18:42</span></div>
+        </div>
+        <aside class="inspector" id="inspector" aria-live="polite"></aside>
+      </section>
+      <section class="call-sheet" id="call-sheet">
+        <div class="call-sheet-head"><div><p class="eyebrow">ЛИСТ ДЛЯ ПЛОЩАДКИ <span>02 / 06</span></p><h2>Коротко для команды</h2></div><button class="button button-dark" id="downloadSheet" type="button">Скачать call sheet <span>↓</span></button></div>
+        <div class="call-sheet-grid"><div class="call-cell call-time"><small>СБОР ГРУППЫ</small><b id="callTime">06:45</b><span>Кофе и отметка присутствия</span></div><div class="call-cell"><small>ПЕРВАЯ СЦЕНА</small><b id="firstScene">02B · Пристань</b><span>Нат. · Рассвет</span></div><div class="call-cell"><small>ПОГОДА</small><b>8° / облачно</b><span>Ветер с залива · зонт наготове</span></div><div class="call-cell"><small>ВАЖНО</small><b>Туман — часть кадра</b><span>Съёмка при видимости от 300 м</span></div></div>
+        <div class="crew-strip"><span>ПРИЗЫВЫ АКТЁРОВ</span><div id="castCalls"></div></div>
+        <footer class="page-footer"><span>SLATEHOUSE / ПЛАНИРУЙТЕ СМЕНУ, А НЕ СЮРПРИЗЫ</span><span>Данные хранятся только в этом браузере</span></footer>
+      </section>
+    </main>
+  </div>
+  <dialog id="sceneDialog" class="scene-dialog"><form id="sceneForm" method="dialog"><div class="dialog-head"><div><p class="eyebrow">НОВАЯ СЦЕНА</p><h2>Что снимаем?</h2></div><button class="icon-button" type="button" data-close="sceneDialog" aria-label="Закрыть">×</button></div><label>Номер и короткое название<input name="title" required placeholder="12A · У причала"></label><div class="form-grid"><label>Локация<input name="location" required placeholder="Пристань"></label><label>Тип<select name="kind"><option value="EXT">НАТ. · EXT</option><option value="INT">ИНТ. · INT</option></select></label><label>Свет<select name="light"><option value="day">День</option><option value="night">Ночь</option><option value="any">Не важно</option></select></label><label>Страницы<input name="pages" type="number" min="0.125" step="0.125" value="1"></label><label>Оценка съёмки, минут<input name="plannedMinutes" type="number" min="15" max="480" step="5" value="90" required></label></div><label>Актёры, через запятую<input name="cast" placeholder="Мара, Капитан"></label><label>Примечание по площадке<textarea name="note" rows="2" placeholder="Что важно проверить до дубля"></textarea></label><div class="dialog-actions"><button class="text-button" type="button" data-close="sceneDialog">Отмена</button><button class="button button-amber" type="submit">Добавить в план</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

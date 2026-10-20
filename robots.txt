@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://thelastie.github.io/slatehouse/sitemap.xml
+Sitemap: https://thelastie.github.io/Slatehouse/sitemap.xml

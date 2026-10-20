@@ -16,6 +16,7 @@
   const hasSavedProject = (() => { try { return Boolean(localStorage.getItem(storeKey)); } catch (_) { return false; } })();
   let project = loadProject();
   if (!hasSavedProject && !project.plan.length) project.plan = buildPlan(project.scenes);
+  if (project.plan.length && project.plan.some(item => !Object.prototype.hasOwnProperty.call(item, 'moveAfter'))) project.plan = buildPlan(project.scenes);
   let selectedId = project.scenes[0]?.id || null;
   let activeFilter = 'all';
   let toastTimer = 0;
@@ -23,9 +24,12 @@
   function loadProject() {
     try {
       const saved = JSON.parse(localStorage.getItem(storeKey));
-      if (saved && Array.isArray(saved.scenes)) return saved;
+      if (saved && Array.isArray(saved.scenes)) {
+        const minutes = Number(saved.moveMinutes);
+        return { ...saved, moveMinutes: Number.isFinite(minutes) ? Math.max(10, Math.min(180, minutes)) : 35 };
+      }
     } catch (_) {}
-    return {scenes: initialScenes.map(scene => ({...scene, cast:[...scene.cast]})), plan:[], sunset:'18:42'};
+    return {scenes: initialScenes.map(scene => ({...scene, cast:[...scene.cast]})), plan:[], sunset:'18:42', moveMinutes:35};
   }
   function save() {
     try { localStorage.setItem(storeKey, JSON.stringify(project)); $('#saveState').innerHTML = '<i></i>СОХРАНЕНО ЛОКАЛЬНО'; }
@@ -54,7 +58,14 @@
       return lightRank(a)-lightRank(b)||(rank.get(a.location)-rank.get(b.location))||idOrder(a.id)-idOrder(b.id);
     });
     let start=390;
-    return ordered.map(scene=>{if(scene.light==='night')start=Math.max(start,19*60+30);const item={id:scene.id,start,duration:duration(scene)};start+=item.duration+12;return item;});
+    return ordered.map((scene,index)=>{
+      if(scene.light==='night')start=Math.max(start,19*60+30);
+      const next=ordered[index+1];
+      const moveAfter=next&&next.location!==scene.location?project.moveMinutes:0;
+      const item={id:scene.id,start,duration:duration(scene),moveAfter};
+      start+=item.duration+(next?(moveAfter||12):0);
+      return item;
+    });
   }
   function autoPlan() {
     project.plan=buildPlan(project.scenes);
@@ -89,7 +100,7 @@
     $('#sceneList').innerHTML=ordered.map((scene,index)=>{
       const plan=(project.plan.length?project.plan:buildPlan(project.scenes)).find(item=>item.id===scene.id);const time=plan?clock(plan.start):'—';const isDay=scene.light==='day';
       return `<article class="scene-card ${selectedId===scene.id?'is-selected':''} ${scene.status==='shot'?'is-shot':''}" data-scene="${escapeHtml(scene.id)}" tabindex="0" aria-label="Сцена ${escapeHtml(scene.id)} ${escapeHtml(scene.title)}">
-        <div class="scene-time"><b>${time}</b><small>${plan?`+${plan.duration} МИН`:'ПО ПЛАНУ'}</small></div>
+        <div class="scene-time"><b>${time}</b><small>${plan?`+${plan.duration} МИН`:'ПО ПЛАНУ'}</small>${plan?.moveAfter?`<small class="scene-move">↗ ${plan.moveAfter} МИН</small>`:''}</div>
         <div><div class="scene-title"><small>${escapeHtml(scene.id)}</small>${escapeHtml(scene.title)}</div><div class="scene-meta"><span>${escapeHtml(scene.kind)} · ${escapeHtml(scene.location)}</span><i>•</i><span>${scene.cast.length} акт.</span><i>•</i><span>${isDay?'ДЕНЬ':scene.light==='night'?'НОЧЬ':'ЛЮБОЙ СВЕТ'}</span></div></div>
         <div class="scene-side"><span class="scene-pages">${scene.pages.toLocaleString('ru-RU')} стр.</span><button class="take-button ${scene.status==='shot'?'is-shot':''}" data-take="${escapeHtml(scene.id)}" type="button">${scene.status==='shot'?'✓ СНЯТА':'ОТМЕТИТЬ'}</button></div>
       </article>`;
@@ -127,9 +138,9 @@
   }
   function downloadCallSheet() {
     if(!project.plan.length)autoPlan();
-    const rows=project.plan.map((item,index)=>{const s=project.scenes.find(x=>x.id===item.id);return `<tr><td>${index+1}</td><td>${clock(item.start)}</td><td>${escapeHtml(s.id)} · ${escapeHtml(s.title)}</td><td>${escapeHtml(s.location)}</td><td>${escapeHtml(s.kind)} / ${s.pages} стр.</td><td>${escapeHtml(s.cast.join(', '))}</td><td>${escapeHtml(s.note||'—')}</td></tr>`;}).join('');
+    const rows=project.plan.map((item,index)=>{const s=project.scenes.find(x=>x.id===item.id);return `<tr><td>${index+1}</td><td>${clock(item.start)}</td><td>${escapeHtml(s.id)} · ${escapeHtml(s.title)}</td><td>${escapeHtml(s.location)}</td><td>${item.moveAfter?`${item.moveAfter} мин`:'—'}</td><td>${escapeHtml(s.kind)} / ${s.pages} стр.</td><td>${escapeHtml(s.cast.join(', '))}</td><td>${escapeHtml(s.note||'—')}</td></tr>`;}).join('');
     const calls=[...castCallTimes()].sort((a,b)=>a[1]-b[1]).map(([name,time])=>`<li>${clock(Math.max(360,time))} — ${escapeHtml(name)}</li>`).join('');
-    const html=`<!doctype html><html lang="ru"><meta charset="utf-8"><title>Call sheet · Последний паром</title><style>body{font:12px Arial,sans-serif;color:#252b28;margin:28px}h1{font:28px Georgia,serif}small{color:#765d46}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #bbb3a5;padding:7px;text-align:left;vertical-align:top}th{background:#eee5d6;font-size:10px;text-transform:uppercase}.calls{display:flex;gap:15px;flex-wrap:wrap}li{margin:4px 0}@media print{body{margin:12mm}}</style><h1>ПОСЛЕДНИЙ ПАРОМ · СЪЁМОЧНЫЙ ДЕНЬ 02</h1><small>СБОР ГРУППЫ ${$('#callTime').textContent} · СЕВЕРНЫЙ БЕРЕГ · ПЛОЩАДКА 01</small><h2>План съёмок</h2><table><thead><tr><th>#</th><th>Начало</th><th>Сцена</th><th>Площадка</th><th>Объём</th><th>Актёры</th><th>Заметка</th></tr></thead><tbody>${rows}</tbody></table><h2>Призывы актёров</h2><ul class="calls">${calls}</ul><h2>Проверки до смены</h2><ul>${getIssues().map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul><p>Лист подготовлен в Slatehouse. Подтвердите время и адрес до отправки группе.</p></html>`;
+    const html=`<!doctype html><html lang="ru"><meta charset="utf-8"><title>Call sheet · Последний паром</title><style>body{font:12px Arial,sans-serif;color:#252b28;margin:28px}h1{font:28px Georgia,serif}small{color:#765d46}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #bbb3a5;padding:7px;text-align:left;vertical-align:top}th{background:#eee5d6;font-size:10px;text-transform:uppercase}.calls{display:flex;gap:15px;flex-wrap:wrap}li{margin:4px 0}@media print{body{margin:12mm}}</style><h1>ПОСЛЕДНИЙ ПАРОМ · СЪЁМОЧНЫЙ ДЕНЬ 02</h1><small>СБОР ГРУППЫ ${$('#callTime').textContent} · СЕВЕРНЫЙ БЕРЕГ · ПЛОЩАДКА 01</small><h2>План съёмок</h2><table><thead><tr><th>#</th><th>Начало</th><th>Сцена</th><th>Площадка</th><th>Переезд после</th><th>Объём</th><th>Актёры</th><th>Заметка</th></tr></thead><tbody>${rows}</tbody></table><h2>Призывы актёров</h2><ul class="calls">${calls}</ul><h2>Проверки до смены</h2><ul>${getIssues().map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul><p>Лист подготовлен в Slatehouse. Подтвердите время и адрес до отправки группе.</p></html>`;
     const blob=new Blob([html],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='slatehouse-call-sheet-day-02.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);showToast('Call sheet готов. Откройте файл и распечатайте для группы.');
   }
   function escapeHtml(value='') { return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char])); }
@@ -141,8 +152,10 @@
     project.scenes.push({id,title,location,kind:data.get('kind'),light:data.get('light'),pages:Number(data.get('pages'))||1,plannedMinutes:Number(data.get('plannedMinutes'))||90,cast:String(data.get('cast')).split(',').map(s=>s.trim()).filter(Boolean),note:String(data.get('note')).trim(),status:'ready'});
     project.plan=[];selectedId=id;form.reset();$('#sceneDialog').close();render();showToast('Сцена добавлена. Пересоберите расписание, чтобы проверить день.');
   }
-  function restoreProject(file) { const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.scenes)||!data.scenes.every(s=>s.id&&s.title&&s.location))throw new Error('bad');project={...data,plan:Array.isArray(data.plan)?data.plan:[]};selectedId=project.scenes[0]?.id||null;render();showToast('Рабочая копия восстановлена.');}catch(_){showToast('Файл не похож на резервную копию Slatehouse.');}};reader.readAsText(file); }
+  function restoreProject(file) { const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.scenes)||!data.scenes.every(s=>s.id&&s.title&&s.location))throw new Error('bad');const minutes=Number(data.moveMinutes);project={...data,moveMinutes:Number.isFinite(minutes)?Math.max(10,Math.min(180,minutes)):35,plan:Array.isArray(data.plan)?data.plan:[]};if(!project.plan.length||project.plan.some(item=>!Object.prototype.hasOwnProperty.call(item,'moveAfter')))project.plan=buildPlan(project.scenes);$('#moveBuffer').value=String(project.moveMinutes);selectedId=project.scenes[0]?.id||null;render();showToast('Рабочая копия восстановлена.');}catch(_){showToast('Файл не похож на резервную копию Slatehouse.');}};reader.readAsText(file); }
   function bind() {
+    $('#moveBuffer').value=String(project.moveMinutes||35);
+    $('#moveBuffer').addEventListener('change',event=>{project.moveMinutes=Math.max(10,Math.min(180,Number(event.target.value)||35));project.plan=buildPlan(project.scenes);render();showToast(`Переезды заложены по ${project.moveMinutes} минут.`);});
     $('#autoPlan').addEventListener('click',autoPlan);$('#addScene').addEventListener('click',()=>$('#sceneDialog').showModal());$('#downloadSheet').addEventListener('click',downloadCallSheet);
     $$('.filter').forEach(button=>button.addEventListener('click',()=>{activeFilter=button.dataset.filter;$$('.filter').forEach(x=>x.classList.toggle('is-active',x===button));render();}));
     $$('[data-close]').forEach(button=>button.addEventListener('click',()=>$('#'+button.dataset.close).close()));

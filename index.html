@@ -19,8 +19,8 @@
   <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"WebApplication","name":"Slatehouse","applicationCategory":"BusinessApplication","operatingSystem":"Any","inLanguage":"ru","description":"An offline-first production desk for breaking down scenes, planning a shoot day, checking daylight and company moves, and preparing a printable call sheet.","areaServed":"Worldwide","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
   </script>
-  <link rel="stylesheet" href="styles.css?v=3">
-  <script src="app.js?v=3" defer></script>
+  <link rel="stylesheet" href="styles.css?v=4">
+  <script src="app.js?v=5" defer></script>
 </head>
 <body>
   <div class="paper-grain" aria-hidden="true"></div>
@@ -44,7 +44,7 @@
       <section class="work-area" id="schedule">
         <div class="schedule-column">
           <div class="section-heading"><div><p class="eyebrow">ПЛАН СМЕНЫ <span>02 / СРЕДА</span></p><h2>Порядок съёмок</h2></div><button class="button button-amber" id="autoPlan" type="button"><span aria-hidden="true">✳</span> Собрать день</button></div>
-          <div class="plan-tools"><div class="filter-tabs" role="group" aria-label="Фильтр сцен"><button class="filter is-active" data-filter="all" type="button">Все <b id="filterAllCount">09</b></button><button class="filter" data-filter="day" type="button">Дневные</button><button class="filter" data-filter="night" type="button">Ночные</button></div><button class="text-button" id="addScene" type="button">＋ Добавить сцену</button></div>
+          <div class="plan-tools"><div class="filter-tabs" role="group" aria-label="Фильтр сцен"><button class="filter is-active" data-filter="all" type="button">Все <b id="filterAllCount">09</b></button><button class="filter" data-filter="day" type="button">Дневные</button><button class="filter" data-filter="night" type="button">Ночные</button></div><div class="plan-actions"><label class="move-buffer" for="moveBuffer"><span>МЕЖДУ ПЛОЩАДКАМИ</span><select id="moveBuffer" aria-label="Время на переезд"><option value="20">20 мин</option><option value="35" selected>35 мин</option><option value="50">50 мин</option><option value="75">75 мин</option></select></label><button class="text-button" id="addScene" type="button">＋ Добавить сцену</button></div></div>
           <div class="scene-list" id="sceneList" aria-live="polite"></div>
           <div class="end-of-day"><span>СТОП СМЕНЫ</span><b id="wrapTime">18:10</b><i></i><span>ЗОЛОТОЙ ЧАС ДО 18:42</span></div>
         </div>

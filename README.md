@@ -1,5 +1,9 @@
 # Slatehouse
 
+The day builder now treats moves between locations as configurable travel time; the allowance appears in the schedule and exported call sheet.
+
+Планировщик учитывает настраиваемое время переезда между площадками и показывает его в расписании и выгруженном call sheet.
+
 ## English
 
 **Turn a script breakdown into a shootable day.** Slatehouse is a production desk for small film crews. It groups scenes by location, protects daylight windows, estimates company moves, collects actor call times, and creates a printable call sheet. Project data stays in the browser and can be backed up as JSON.
